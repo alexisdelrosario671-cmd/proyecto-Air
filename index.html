@@ -923,14 +923,13 @@
             <p style="margin-top: 1rem; color: #888;"><i class="fas fa-info-circle"></i> Atendemos únicamente fines de semana para tu comodidad</p>
         </div>
 
-        <!-- FORMULARIO QUE ENVÍA A CORREO (SIN MOSTRAR NÚMERO) -->
+        <!-- FORMULARIO ARREGLADO - SIN REDIRECCIÓN -->
         <div class="form-container" data-aos="fade-up">
-            <form action="https://formsubmit.co/Delrosarioalexis671@gmail.com" method="POST" id="serviceForm">
-                <!-- Estos campos son necesarios para que funcione correctamente -->
+            <form id="serviceForm">
+                <!-- Los campos ocultos necesarios -->
                 <input type="hidden" name="_captcha" value="false">
                 <input type="hidden" name="_template" value="table">
                 <input type="hidden" name="_subject" value="📋 NUEVA SOLICITUD DE SERVICIO - ClimaTech">
-                <input type="hidden" name="_next" value="#">
                 
                 <div class="form-grid">
                     <div class="form-group">
@@ -991,7 +990,7 @@
             </form>
         </div>
 
-        <!-- Contacto Rápido (envía a tu correo también) -->
+        <!-- Contacto Rápido -->
         <div class="quick-contact" data-aos="fade-up">
             <i class="fas fa-headset" style="font-size: 3rem; color: #00d4ff;"></i>
             <h3>¿Necesitas ayuda urgente?</h3>
@@ -1218,6 +1217,45 @@
         }, 4000);
     }
 
+    // ========== ENVÍO DE FORMULARIO SIN REDIRECCIÓN ==========
+    const serviceForm = document.getElementById('serviceForm');
+    const submitBtn = document.querySelector('#serviceForm .submit-btn');
+
+    serviceForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Evita que recargue la página
+        
+        // Mostrar estado de "enviando"
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+        submitBtn.disabled = true;
+        
+        // Recoger los datos del formulario
+        const formData = new FormData(serviceForm);
+        
+        try {
+            const response = await fetch('https://formsubmit.co/ajax/Delrosarioalexis671@gmail.com', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                showNotification('✅ Solicitud enviada. Te contactaremos pronto.');
+                serviceForm.reset(); // Limpiar el formulario
+                // Limpiar también el campo oculto de ubicación
+                document.getElementById('ubicacionHidden').value = '';
+            } else {
+                showNotification('❌ Error al enviar. Intenta de nuevo.', true);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showNotification('❌ Error de conexión. Intenta de nuevo.', true);
+        }
+        
+        // Restaurar botón
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+
     // Ubicación
     document.getElementById('locationBtn').addEventListener('click', () => {
         if (navigator.geolocation) {
@@ -1235,7 +1273,7 @@
         }
     });
 
-    // Contacto urgente - Envía a tu correo también
+    // Contacto urgente
     document.getElementById('urgentBtn').addEventListener('click', async () => {
         const phone = document.getElementById('urgentPhone').value;
         if (!phone) {
@@ -1248,7 +1286,6 @@
             return;
         }
         
-        // Enviar a FormSubmit
         const formData = new FormData();
         formData.append('telefono_urgente', phone);
         formData.append('_subject', '⚠️ CONTACTO URGENTE - ClimaTech');
